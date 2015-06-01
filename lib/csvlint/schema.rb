@@ -23,7 +23,11 @@ module Csvlint
           fields_by_index[i] = field
           build_warnings(:different_index_header, :schema, nil, i+1, name) if fields[i].try(:name) != name
         else
-          build_warnings(:extra_header, :schema, nil, i+1, name)
+          if fields[i].constraints.fetch('required', nil)
+            build_errors(:missing_header, :schema, nil, fields[i].name)
+          else
+            build_warnings(:extra_header, :schema, nil, i+1, name)
+          end
         end
       end
 
