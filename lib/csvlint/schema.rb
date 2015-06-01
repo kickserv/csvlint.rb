@@ -40,7 +40,7 @@ module Csvlint
       values.each_with_index do |value,i|
         field = fields_by_index[i]
         if field
-          result = field.validate_column(value || "", row, fields.index(field)+1)
+          result = field.validate_column(value || "", row, fields_by_index.key(field)+1)
           @errors += field.errors
           @warnings += field.warnings
         else
