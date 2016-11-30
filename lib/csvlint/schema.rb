@@ -21,9 +21,9 @@ module Csvlint
         field = fields.find { |field| field.name.downcase == name.downcase }
         if field
           fields_by_index[i] = field
-          build_warnings(:different_index_header, :schema, nil, i+1, name) if fields[i].try(:name) != name
+          build_warnings(:different_index_header, :schema, nil, i+1, name) if fields[i].name && fields[i].name != name
         else
-          if fields[i].constraints.fetch('required', nil)
+          if fields[i] && fields[i].constraints.fetch('required', nil)
             build_errors(:missing_header, :schema, nil, fields[i].name)
           else
             build_warnings(:extra_header, :schema, nil, i+1, name)
