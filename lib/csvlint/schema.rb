@@ -11,16 +11,17 @@ module Csvlint
       @fields = fields
       @title = title
       @description = description
+      @fields_by_index = {}
       reset
     end
 
     def validate_header(header)
       reset
-      @fields_by_index = {}
+
       header.each_with_index do |name,i|
         field = fields.find { |field| field.name.downcase == name.downcase }
         if field
-          fields_by_index[i] = field
+          @fields_by_index[i] = field
           build_warnings(:different_index_header, :schema, nil, i+1, name) if fields[i].name && fields[i].name != name
         else
           if fields[i] && fields[i].constraints.fetch('required', nil)
@@ -31,7 +32,7 @@ module Csvlint
         end
       end
 
-      (fields - fields_by_index.values).each do |field|
+      (fields - @fields_by_index.values).each do |field|
         build_warnings(:missing_header, :schema, nil, fields.index(field)+1, field.name)
       end
 
@@ -40,11 +41,14 @@ module Csvlint
 
     def validate_row(values, row=nil)
       reset
+      values_array = Array.new(values.length) { |i| nil }
 
-      values.each_with_index do |value,i|
-        field = fields_by_index[i]
+      @fields_by_index.each_with_index {|f,i| values_array[i] = (values[i] ? values[i] : nil)}
+
+      values_array.each_with_index do |value,i|
+        field = @fields_by_index[i]
         if field
-          result = field.validate_column(value || "", row, fields_by_index.key(field)+1)
+          result = field.validate_column(value || "", row, @fields_by_index.key(field)+1)
           @errors += field.errors
           @warnings += field.warnings
         else
@@ -52,8 +56,8 @@ module Csvlint
         end
       end
 
-      (fields - fields_by_index.values).each_with_index do |field,i|
-        build_warnings(:missing_column, :schema, row, fields.index(field)+1, field.name)
+      fields.each_with_index do |field, i|
+        build_warnings(:missing_column, :schema, row, i+1, field.name) if values_array[i].nil?
       end
 
       return valid?
