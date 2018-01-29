@@ -86,27 +86,24 @@ describe Csvlint::Schema do
   end 
 
   context "when validating header" do
-    it "should warn if column names are different to field names" do
-      minimum = Csvlint::Field.new("minimum", { "minLength" => 3 } )
-      required = Csvlint::Field.new("required", { "required" => true } )
-      schema = Csvlint::Schema.new("http://example.org", [minimum, required] )
-  
+    let(:minimum) { Csvlint::Field.new("minimum", { "minLength" => 3 } ) }
+    let(:required) { Csvlint::Field.new("required", { "required" => true } ) }
+    let(:schema) { Csvlint::Schema.new("http://example.org", [minimum, required] ) }
+
+    it "should be case insensitive" do
       expect( schema.validate_header(["minimum", "required"]) ).to eql(true)
       expect( schema.warnings.size ).to eql(0)
-      
+    end
+    it "should warn if column names are different to field names" do
       expect( schema.validate_header(["wrong", "required"]) ).to eql(true)
-      expect( schema.warnings.size ).to eql(1)
+      expect( schema.warnings.size ).to eql(2)
       expect( schema.warnings.first.type).to eql(:extra_header)
       expect( schema.warnings.first.content).to eql("wrong")
       expect( schema.warnings.first.column).to eql(1)
       expect( schema.warnings.first.category).to eql(:schema)
-      
-      expect( schema.validate_header(["minimum", "Required"]) ).to eql(true)
-      expect( schema.warnings.size ).to eql(1)
-
     end        
   end  
-  
+
   context "when parsing JSON Tables" do
     
     before(:each) do 
