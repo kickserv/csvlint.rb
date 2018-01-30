@@ -20,18 +20,17 @@ module Csvlint
 
       header.each_with_index do |name,i|
         field = fields.find { |field| field.name.downcase == name.downcase }
+
+        if fields[i] && fields[i].constraints.fetch('required', nil) && fields[i].name.downcase != name.downcase
+          build_errors(:missing_header, :schema, nil, fields[i].name)
+        end
         if field
           @fields_by_index[i] = field
-          build_warnings(:different_index_header, :schema, nil, i+1, name) if fields[i].name && fields[i].name != name
+          build_warnings(:different_index_header, :schema, nil, i+1, name) if fields[i].name && fields[i].name.downcase != name.downcase
         else
-          if fields[i] && fields[i].constraints.fetch('required', nil)
-            build_errors(:missing_header, :schema, nil, fields[i].name)
-          else
-            build_warnings(:extra_header, :schema, nil, i+1, name)
-          end
+          build_warnings(:extra_header, :schema, nil, i+1, name)
         end
       end
-
       (fields - @fields_by_index.values).each do |field|
         build_warnings(:missing_header, :schema, nil, fields.index(field)+1, field.name)
       end
