@@ -2,7 +2,6 @@
 $:.unshift File.join( File.dirname(__FILE__), "..", "lib")
 
 require 'csvlint'
-require 'colorize'
 require 'json'
 require 'optparse'
 require 'pp'
@@ -45,7 +44,7 @@ def print_error(index, error, dump, color)
   output_string = "#{index+1}. #{error.type}. #{location}"
 
   if $stdout.tty?
-    puts output_string.colorize(color)
+    puts output_string #color string later
   else
     puts output_string
   end
